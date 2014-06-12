@@ -17,8 +17,13 @@
 
 (define-condition triangle-error  (error) ())
 
-(defun triangle (a b c)
-  :write-me)
+(defun triangle (&rest sides)
+  (cond ((let ((sum (apply #'+ sides)))
+	   (member-if #'(lambda (s) (or (<= s 0)) (>= s (/ sum 2)))  sides) )
+	 (make-condition 'triangle-error))
+	((apply #'= sides) :equilateral)
+	((= (length (remove-duplicates sides)) 2) :isosceles)
+	(t :scalene) ) )
 
 
 (define-test test-equilateral-triangles-have-equal-sides
