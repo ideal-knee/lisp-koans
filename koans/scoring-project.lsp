@@ -49,9 +49,34 @@
 ;
 ; Your goal is to write the score method.
 
+(defun filter (pred lst)
+  (if (null lst)
+      nil
+      (let ((in? (funcall pred (car lst))))
+	(if (null (cdr lst))
+	    (if in?
+		(values lst nil)
+		(values nil lst) )
+	    (multiple-value-bind (in out) (filter pred (cdr lst))
+	      (if in?
+		  (values (cons (car lst) in) out)
+		  (values in (cons (car lst) out)) ) ) ) ) ) )
+
 (defun score (dice)
-  ; You need to write this method
-)
+  (if (null dice)
+      0
+      (let ((current-value (car dice)))
+	(multiple-value-bind (matches others) (filter #'(lambda (i) (= i current-value)) dice)
+	  (+ (let ((n-matches (length matches)))
+	       (if (>= n-matches 3)
+		   (if (= current-value 1)
+		       (+ 1000 (* (- n-matches 3) 100))
+		       (+ (* current-value 100)
+			  (if (= current-value 5) (* (- n-matches 3) 50) 0) ) )
+		   (cond ((= current-value 1) (* n-matches 100))
+			 ((= current-value 5) (* n-matches  50))
+			 (t 0) ) ) )
+	     (score others) ) ) ) ) )
 
 (define-test test-score-of-an-empty-list-is-zero
     (assert-equal 0 (score nil)))
